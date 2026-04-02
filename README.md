@@ -174,7 +174,7 @@ Want to change the dynamics? Modify:
 
 ## Warnings
 
-⚠️ **Can overwrite files** Run in an isolated environment.
+⚠️ **Can overwrite files**. Run in an isolated environment.
 
 ⚠️ **This burns tokens fast.** Three serpents acting per round means 3x the API cost.
 
