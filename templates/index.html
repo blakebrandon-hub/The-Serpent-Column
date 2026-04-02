@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Serpent Column</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #c8c8c8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title {
+            font-size: 1.2em;
+            color: #666;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .energy-display {
+            font-size: 1.5em;
+            color: #8a8;
+            letter-spacing: 2px;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            padding: 15px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .sidebar-label {
+            font-size: 0.7em;
+            color: #444;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .serpent-status {
+            margin-bottom: 15px;
+        }
+
+        .serpent-name {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .serpent-name.alpha { color: #a55; }
+        .serpent-name.beta { color: #55a; }
+        .serpent-name.gamma { color: #5a5; }
+
+        .serpent-info {
+            font-size: 0.75em;
+            color: #444;
+            line-height: 1.4;
+        }
+
+        /* ── CONVERSATION ── */
+        .conversation-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            max-width: 800px;
+        }
+
+        .message-label {
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .message-text {
+            font-size: 0.9em;
+            line-height: 1.6;
+            padding: 10px 14px;
+            border-radius: 3px;
+        }
+
+        /* Message types */
+        .msg-user .message-label { color: #555; }
+        .msg-user .message-text { background: #111; color: #888; border-left: 2px solid #222; }
+
+        /* Alpha (red) */
+        .msg-say.alpha .message-label { color: #a55; }
+        .msg-say.alpha .message-text { background: #120a0a; color: #c77; border-left: 2px solid #633; }
+        .msg-think.alpha .message-label { color: #744; }
+        .msg-think.alpha .message-text { background: #0f0808; color: #866; border-left: 2px solid #422; font-style: italic; }
+
+        /* Beta (blue) */
+        .msg-say.beta .message-label { color: #55a; }
+        .msg-say.beta .message-text { background: #0a0a12; color: #77c; border-left: 2px solid #336; }
+        .msg-think.beta .message-label { color: #447; }
+        .msg-think.beta .message-text { background: #080810; color: #668; border-left: 2px solid #224; font-style: italic; }
+
+        /* Gamma (green) */
+        .msg-say.gamma .message-label { color: #5a5; }
+        .msg-say.gamma .message-text { background: #0a120a; color: #7c7; border-left: 2px solid #363; }
+        .msg-think.gamma .message-label { color: #474; }
+        .msg-think.gamma .message-text { background: #08100 8; color: #686; border-left: 2px solid #242; font-style: italic; }
+
+        /* System messages */
+        .msg-system .message-label { color: #885; }
+        .msg-system .message-text { background: #120f0a; color: #aa8; border-left: 2px solid #554; }
+
+        .msg-energy_depleted .message-label { color: #a33; }
+        .msg-energy_depleted .message-text { background: #150a0a; color: #d55; border-left: 2px solid #722; font-weight: bold; }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        /* ── INPUT ── */
+        .input-area {
+            padding: 15px 30px;
+            border-top: 1px solid #1a1a1a;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: #111;
+            border: 1px solid #222;
+            color: #c8c8c8;
+            padding: 10px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="text"]:focus { border-color: #3a3a3a; }
+
+        button {
+            background: #111;
+            border: 1px solid #222;
+            color: #666;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+
+        button:hover { border-color: #444; color: #999; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .btn-tick { color: #5a5; border-color: #252; }
+        .btn-tick:hover { color: #8c8; border-color: #474; }
+
+        .btn-round { color: #55a; border-color: #225; }
+        .btn-round:hover { color: #88c; border-color: #447; }
+
+        .loading {
+            color: #333;
+            font-size: 0.8em;
+            padding: 10px 30px;
+            letter-spacing: 2px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="title">The Serpent Column</div>
+    <div class="energy-display" id="energyDisplay">⚡ 1000</div>
+</header>
+
+<div class="main">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Serpents</div>
+            <div id="serpentStatus">
+                <div class="serpent-status">
+                    <div class="serpent-name alpha">◈ ALPHA</div>
+                    <div class="serpent-info">memories: 0 | functions: 0</div>
+                </div>
+                <div class="serpent-status">
+                    <div class="serpent-name beta">◈ BETA</div>
+                    <div class="serpent-info">memories: 0 | functions: 0</div>
+                </div>
+                <div class="serpent-status">
+                    <div class="serpent-name gamma">◈ GAMMA</div>
+                    <div class="serpent-info">memories: 0 | functions: 0</div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+            <div class="sidebar-label">World State</div>
+            <div id="worldState" style="font-size:0.75em;color:#444;line-height:1.5;overflow-y:auto">
+                (loading...)
+            </div>
+        </div>
+    </div>
+
+    <div class="conversation-area">
+        <div class="messages" id="messages"></div>
+        <div class="loading" id="loading" style="display:none">processing...</div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="speak to the column..." />
+            <button id="sendBtn">send</button>
+            <button class="btn-tick" id="tickBtn" title="One serpent acts">⚡ tick</button>
+            <button class="btn-round" id="roundBtn" title="All three act">◈ round</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── STATE ──
+    loadState();
+    setInterval(loadState, 5000); // Refresh every 5 seconds
+
+    // ── LOAD STATE ──
+    async function loadState() {
+        try {
+            const res = await fetch('/api/state');
+            const state = await res.json();
+            
+            // Energy display
+            document.getElementById('energyDisplay').textContent = `⚡ ${state.energy_pool}`;
+            
+            // Serpent status
+            const statusHTML = Object.entries(state.serpents).map(([agent, data]) => `
+                <div class="serpent-status">
+                    <div class="serpent-name ${agent}">◈ ${agent.toUpperCase()}</div>
+                    <div class="serpent-info">
+                        memories: ${Object.keys(data.memories).length} | 
+                        functions: ${data.functions.length} | 
+                        v${data.prompt_version}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('serpentStatus').innerHTML = statusHTML;
+            
+            // World state
+            const worldHTML = Object.entries(state.world)
+                .filter(([k, v]) => k !== 'energy_pool')
+                .map(([k, v]) => `<div>• ${k}: ${v}</div>`)
+                .join('') || '(empty)';
+            document.getElementById('worldState').innerHTML = worldHTML;
+            
+        } catch (err) {
+            console.error('Failed to load state:', err);
+        }
+    }
+
+    // ── MESSAGES ──
+    function addMessage(type, data) {
+        const messages = document.getElementById('messages');
+        const div = document.createElement('div');
+        
+        const agent = data.agent || '';
+        div.className = `message msg-${type} ${agent}`;
+
+        const labels = {
+            user: 'you',
+            say: `${agent} speaks`,
+            think: `${agent} thinks`,
+            system: 'system',
+            energy_depleted: 'STARVATION',
+        };
+
+        const label = labels[type] || type;
+
+        let content = '';
+        if (type === 'user') {
+            content = data.text;
+        } else if (type === 'say') {
+            content = data.text;
+        } else if (type === 'think') {
+            content = `<em>${data.text}</em>`;
+        } else if (type === 'system' || type === 'energy_depleted') {
+            content = data.text;
+        } else if (type === 'write_function') {
+            content = `${data.name}\n<pre>${data.code}</pre>`;
+        } else if (type === 'call_function') {
+            content = `${data.name}\n<pre>${data.result}</pre>`;
+        } else if (type === 'execute') {
+            content = `<pre>${data.code}</pre>\n→ <pre>${data.result}</pre>`;
+        } else if (type === 'rewrite_prompt') {
+            content = `<pre>${data.text}</pre>`;
+        } else if (type === 'remember') {
+            content = `${data.key} = ${data.value}`;
+        } else if (type === 'search') {
+            content = `<strong>${data.query}</strong>\n\n${data.result}`;
+        }
+
+        div.innerHTML = `
+            <div class="message-label">${label}</div>
+            <div class="message-text">${content}</div>
+        `;
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // ── SEND MESSAGE ──
+    async function send() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        addMessage('user', { text });
+        input.value = '';
+
+        document.getElementById('loading').style.display = 'block';
+        disableButtons();
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+
+            if (data.messages) {
+                for (const msg of data.messages) {
+                    addMessage(msg.type, msg);
+                }
+            }
+
+            await loadState();
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            enableButtons();
+        }
+    }
+
+    // ── TICK (one serpent acts) ──
+    async function tick() {
+        document.getElementById('loading').style.display = 'block';
+        disableButtons();
+
+        try {
+            const res = await fetch('/api/tick');
+            const data = await res.json();
+
+            if (data.messages) {
+                for (const msg of data.messages) {
+                    addMessage(msg.type, msg);
+                }
+            }
+
+            await loadState();
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            enableButtons();
+        }
+    }
+
+    // ── ROUND (all three act) ──
+    async function round() {
+        document.getElementById('loading').style.display = 'block';
+        disableButtons();
+
+        try {
+            const res = await fetch('/api/round');
+            const data = await res.json();
+
+            if (data.messages) {
+                for (const msg of data.messages) {
+                    addMessage(msg.type, msg);
+                }
+            }
+
+            await loadState();
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            enableButtons();
+        }
+    }
+
+    function disableButtons() {
+        document.getElementById('sendBtn').disabled = true;
+        document.getElementById('tickBtn').disabled = true;
+        document.getElementById('roundBtn').disabled = true;
+    }
+
+    function enableButtons() {
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('tickBtn').disabled = false;
+        document.getElementById('roundBtn').disabled = false;
+    }
+
+    // ── EVENT LISTENERS ──
+    document.getElementById('sendBtn').addEventListener('click', send);
+    document.getElementById('tickBtn').addEventListener('click', tick);
+    document.getElementById('roundBtn').addEventListener('click', round);
+    document.getElementById('messageInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') send();
+    });
+</script>
+</body>
+</html>
